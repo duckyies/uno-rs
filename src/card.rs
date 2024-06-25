@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::fmt::Display;
 pub struct Card {
     id: String,
@@ -68,5 +69,26 @@ impl Display for Card {
             let color_name = self.get_color_name();
             write!(f, "{} {}", color_name, self.id)
         }
+    }
+}
+
+impl Eq for Card {
+
+}
+
+impl PartialEq<Self> for Card {
+    fn eq(&self, other: &Self) -> bool {
+        self.get_value() == other.get_value()
+    }
+}
+impl Ord for Card {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.get_value().cmp(&other.get_value())
+    }
+}
+
+impl PartialOrd<Self> for Card {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
