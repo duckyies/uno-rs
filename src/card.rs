@@ -1,9 +1,9 @@
 use std::cmp::Ordering;
 use std::fmt::Display;
 pub struct Card {
-    id: String,
+    pub(crate) id: String,
     wild: bool,
-    color: String,
+    pub(crate) color: String,
 }
 
 impl Card {
