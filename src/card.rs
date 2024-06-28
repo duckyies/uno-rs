@@ -7,13 +7,14 @@ pub struct Card {
 }
 
 impl Card {
-    fn new(id: String, color : String) -> Self {
+    pub(crate) fn new(id: String, color : &str) -> Self {
         let wild: bool = {
             color == "wild" || color == ""
         };
+        let colour = String::from(color);
         Self {
             id,
-            color,
+            color: colour,
             wild
         }
     }

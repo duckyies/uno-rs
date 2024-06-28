@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use crate::card::Card;
 use crate::player::Player;
 use crate::rules::Rule;
+use rand::thread_rng;
+use rand::seq::SliceRandom;
 
 pub struct UnoGame<'rule> {
     players : HashMap<i32,Player>,
@@ -17,8 +19,8 @@ pub struct UnoGame<'rule> {
     rules: [Rule<'rule>; 10],
 }
 
-impl UnoGame {
-    fn new() -> UnoGame {
+impl<'a> UnoGame<'_> {
+    pub fn new() -> UnoGame<'a> {
         UnoGame {
             players: HashMap::new(),
             queue: Vec::new(),
@@ -33,10 +35,46 @@ impl UnoGame {
             rules: UnoGame::generate_rules()
         }
     }
-    fn generate_deck() {
-
+    pub fn start(&mut self) {
+        self.generate_deck();
     }
-    fn generate_rules() -> [Rule; 10] {
+    pub fn generate_deck(&mut self) {
+        let decks = self.get_rule("decks");
+        if let Some(deck_no) = decks {
+            for deck in 0..deck_no.value {
+                for color in ["R","G","B","Y"] {
+                    for card in 0..10 {
+                        self.deck.push(Card::new(card.to_string(), color));
+                        self.deck.push(Card::new(card.to_string(), color));
+                    }
+                    for card in 0..2 {
+                        self.deck.push(Card::new("+2".to_string(), color));
+                        self.deck.push(Card::new("SKIP".to_string(), color));
+                        self.deck.push(Card::new("REVERSE".to_string(), color));
+                    }
+                }
+                for card in 0..4 {
+                    self.deck.push(Card::new("WILD".to_string(), ""));
+                    self.deck.push(Card::new("WILD+4".to_string(), ""));
+                }
+            }
+
+        }
+        else {
+            panic!("Rule 'decks' not found");
+        }
+        self.shuffle_deck();
+    }
+
+    fn shuffle_deck(&mut self) {
+        self.deck.shuffle(&mut thread_rng())
+    }
+
+    fn get_rule(&mut self , get_rule: &str) -> Option<&Rule>{
+        self.rules.iter().find(|rule| rule.name.to_lowercase() == get_rule.to_lowercase())
+    }
+
+    fn generate_rules() -> [Rule<'a>; 10] {
         [
             Rule{
                 desc: "The number of decks to use.",

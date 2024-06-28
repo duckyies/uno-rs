@@ -1,7 +1,8 @@
-mod uno_game;
+pub mod uno_game;
 mod player;
-mod card;
+
 mod rules;
+mod card;
 
 mod game_manager {
     

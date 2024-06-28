@@ -4,10 +4,10 @@ use std::ops::Index;
 use crate::card::Card;
 use crate::uno_game::UnoGame;
 
-pub struct Player {
+pub struct Player<'a> {
     id: i32,
     username: String,
-    uno_game: UnoGame,
+    uno_game: UnoGame<'a>,
     hand: Vec<Card>,
     called: bool,
     finished: bool,
@@ -48,7 +48,7 @@ impl Player {
         let mut color: String = String::new();
         let mut id: String = String::new();
         if words.len() == 1 {
-            let str_color: String = words[0].clone().chars()[0];
+            let str_color: String = words[0].clone().chars().next().unwrap().to_string();
             let parsed = self.parse_color(str_color.clone());
             if  parsed == "" {
                 id = words[0].clone();
