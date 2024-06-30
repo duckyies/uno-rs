@@ -5,7 +5,7 @@ use crate::rules::Rule;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
 
-pub struct UnoGame<'rule> {
+pub struct UnoGame {
     players : HashMap<i32,Player>,
     queue: Vec<Player>,
     deck: Vec<Card>,
@@ -16,11 +16,11 @@ pub struct UnoGame<'rule> {
     started: bool,
     confirm: bool,
     time_started: i64,
-    rules: [Rule<'rule>; 10],
+    rules: [Rule; 10],
 }
 
-impl<'a> UnoGame<'_> {
-    pub fn new() -> UnoGame<'a> {
+impl UnoGame {
+    pub fn new() -> UnoGame {
         UnoGame {
             players: HashMap::new(),
             queue: Vec::new(),
@@ -74,85 +74,85 @@ impl<'a> UnoGame<'_> {
         self.rules.iter().find(|rule| rule.name.to_lowercase() == get_rule.to_lowercase())
     }
 
-    fn generate_rules() -> [Rule<'a>; 10] {
+    fn generate_rules() -> [Rule; 10] {
         [
             Rule{
-                desc: "The number of decks to use.",
+                desc: "The number of decks to use.".to_string(),
                 value: 1,
-                name: "Decks",
-                rtype: "integer",
+                name: "Decks".to_string(),
+                rtype: "integer".to_string(),
                 max: 8,
                 min: 1,
             },
             Rule{
-                desc: "How many cards to pick up at the beginning.",
+                desc: "How many cards to pick up at the beginning.".to_string(),
                 value: 7,
-                name: "Initial Cards",
-                rtype: "integer",
+                name: "Initial Cards".to_string(),
+                rtype: "integer".to_string(),
                 min: 1,
                 max: 5000,
             },
             Rule {
-                desc: "Whether pickup cards (+2, +4) should also skip the next person's turn.",
+                desc: "Whether pickup cards (+2, +4) should also skip the next person's turn.".to_string(),
                 value: 1,
-                name: "Draws Skip",
-                rtype:"boolean",
+                name: "Draws Skip".to_string(),
+                rtype: "boolean".to_string(),
                 min: 0,
                 max: 0,
             },
             Rule {
-                desc: "Whether reverse cards skip turns when there's only two players left.",
+                desc: "Whether reverse cards skip turns when there's only two players left.".to_string(),
                 value: 1,
-                name: "Reverses Skip",
-                rtype: "boolean",
+                name: "Reverses Skip".to_string(),
+                rtype: "boolean".to_string(),
                 min: 0,
                 max: 0,
             },
             Rule {
-                desc: "Whether someone must play a card if they are able to.",
+                desc: "Whether someone must play a card if they are able to.".to_string(),
                 value: 0,
-                name: "Must Play",
-                rtype: "boolean",
+                name: "Must Play".to_string(),
+                rtype: "boolean".to_string(),
                 min: 0,
                 max: 0,
             },
             Rule {
-                desc: "Gives the ability to call someone out for not saying uno!",
+                desc: "Gives the ability to call someone out for not saying uno!".to_string(),
                 value: 1,
-                name: "Callouts",
-                rtype: "boolean",
+                name: "Callouts".to_string(),
+                rtype: "boolean".to_string(),
                 min: 0,
                 max: 0,
             },
             Rule {
-                desc: "The number of cards to give someone when called out.",
+                desc: "The number of cards to give someone when called out.".to_string(),
                 value: 2,
-                name: "Callout Penalty",
-                rtype: "integer",
+                name: "Callout Penalty".to_string(),
+                rtype: "integer".to_string(),
                 max: 1000,
                 min: 0,
             },
             Rule {
-                desc: "The number of cards to give someone for falsely calling someone out.",
+                desc: "The number of cards to give someone for falsely calling someone out.".to_string(),
                 value: 2,
-                name: "False Callout Penalty",
-                rtype: "integer",
+                name: "False Callout Penalty".to_string(),
+                rtype: "integer".to_string(),
                 max: 1000,
                 min: 0,
             },
             Rule {
-                desc: "Automatically plays a card after drawing, if possible. If a wild card is drawn, will give a prompt for color.",
+                desc: "Automatically plays a card after drawing, if possible. If a wild card is drawn, will give a prompt for color.".to_string(),
                 value: 0,
-                name: "Automatically Play After Draw",
-                rtype: "boolean",
+                name: "Automatically Play After Draw".to_string(),
+                rtype: "boolean".to_string(),
                 min: 0,
                 max: 0,
             },
             Rule {
-                desc: "Automatically proceeds to the next turn after drawing, meaning that you cannot play drawn cards (without DRAW_AUTOPLAY).",
+                desc: "Automatically proceeds to the next turn after drawing, meaning that you cannot play drawn cards (without DRAW_AUTOPLAY).".to_string(),
                 value: 1,
-                name: "Automatically Pass Turns (WIP)",
-                rtype: "boolean",
+                name: "Automatically Pass Turns (WIP)".to_string(),
+                rtype: "boolean".to_string(),
                 min: 0,
                 max: 0,
             }
