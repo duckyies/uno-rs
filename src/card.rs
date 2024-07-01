@@ -93,3 +93,13 @@ impl PartialOrd<Self> for Card {
         Some(self.cmp(other))
     }
 }
+
+impl Clone for Card {
+    fn clone(&self) -> Self {
+        Card {
+            id: self.id.clone(),
+            wild: self.wild,
+            color: self.color.clone(),
+        }
+    }
+}

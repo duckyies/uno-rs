@@ -1,4 +1,5 @@
 pub struct Rule {
+    pub(crate) idx: i32,
     pub(crate) desc: String,
     pub(crate) value: i32,
     pub(crate) name:  String,

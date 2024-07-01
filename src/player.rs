@@ -122,5 +122,19 @@ impl Player {
         let hand = self.get_hand();
         self.send_message(hand)
     }
+}
 
+impl Clone for Player {
+    fn clone(&self) -> Self {
+        let player = Player {
+            id: self.id,
+            username: self.username.clone(),
+            hand: Vec::clone(&self.hand),
+            called: self.called,
+            finished: self.finished,
+            cards_played: self.cards_played,
+            messages: Vec::clone(&self.messages),
+        };
+        return player
+    }
 }
