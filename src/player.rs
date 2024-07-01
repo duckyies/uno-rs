@@ -3,14 +3,13 @@ use crate::card::Card;
 use crate::uno_game::UnoGame;
 
 pub struct Player {
-    id: i32,
-    username: String,
-    uno_game: UnoGame,
-    hand: Vec<Card>,
-    called: bool,
-    finished: bool,
-    cards_played: i32,
-    messages : Vec<String>,
+    pub(crate) id: i32,
+    pub(crate) username: String,
+    pub(crate) hand: Vec<Card>,
+    pub(crate) called: bool,
+    pub(crate) finished: bool,
+    pub(crate) cards_played: i32,
+    pub(crate) messages : Vec<String>,
 }
 
 struct PlayerOutput {
@@ -88,13 +87,12 @@ impl Player {
         if aliases.contains(&&*id.to_uppercase()) {
             id = wild_aliases[&id.to_string().to_uppercase()].to_string()
         };
-        if ["WILD","WILD+4"].contains(&&*id.to_uppercase().to_string()) {
+        return if ["WILD", "WILD+4"].contains(&&*id.to_uppercase().to_string()) {
             let found_card = self.hand.iter().find(|&card: &&Card| card.id.eq_ignore_ascii_case(id.as_str()));
-            return found_card
-        }
-        else {
+            found_card
+        } else {
             let found_card = self.hand.iter().find(|&card: &&Card| card.id.eq_ignore_ascii_case(id.as_str()) && card.color.eq_ignore_ascii_case(color.as_str()));
-            return found_card
+            found_card
         }
     }
 

@@ -66,11 +66,42 @@ impl UnoGame {
         self.shuffle_deck();
     }
 
+    pub fn add_player(&mut self, name: &str) -> Player {
+        let mut player = Player {
+            id: self.players.len() as i32,
+            username: name.to_string(),
+            hand: vec![],
+            called: false,
+            finished: false,
+            cards_played: 0,
+            messages: vec![],
+        };
+        self.players.insert(player.id, &*player);
+        player
+    }
     fn shuffle_deck(&mut self) {
         self.deck.shuffle(&mut thread_rng())
     }
 
-    fn get_rule(&mut self , get_rule: &str) -> Option<&Rule>{
+    pub fn show_rule(&mut self, rule: &str) -> String {
+        let found_rule = self.get_rule(rule);
+        if let Some(rule) = found_rule {
+            format!("*{}*\nType: {}\nValue: {}\n\n{}", rule.name,rule.rtype,rule.value,rule.desc)
+        }
+        else {
+            return String::from("")
+        }
+    }
+    
+    pub fn show_all_rules(&mut self) -> String {
+        let mut rules = String::new();
+        for rule in UnoGame::generate_rules() {
+            rules.push_str(&format!("*{}*\nType: {}\nValue: {}\n\n{}\n\n", rule.name,rule.rtype,rule.value,rule.desc))
+        }
+        rules
+    }
+
+    pub fn get_rule(&mut self , get_rule: &str) -> Option<&Rule>{
         self.rules.iter().find(|rule| rule.name.to_lowercase() == get_rule.to_lowercase())
     }
 
