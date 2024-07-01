@@ -22,7 +22,7 @@ impl Player {
     fn cards_changed(&mut self) {
         self.sort_hand();
     }
-    fn sort_hand(&mut self) {
+    pub fn sort_hand(&mut self) {
         self.hand.sort()
     }
     pub fn parse_color(&self, color: String) -> &str {

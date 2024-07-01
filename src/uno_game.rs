@@ -15,6 +15,7 @@ pub struct UnoGame {
     finished: Vec<Player>,
     dropped: Vec<Player>,
     started: bool,
+    drawn: i32,
     confirm: bool,
     time_started: i64,
     rules: [Rule; 10],
@@ -30,6 +31,7 @@ impl UnoGame {
             finished: Vec::new(),
             discard: Vec::new(),
             dropped: Vec::new(),
+            drawn: 0,
             started: false,
             confirm: false,
             time_started: 0,
@@ -37,8 +39,43 @@ impl UnoGame {
         }
     }
     pub fn start(&mut self) {
+        if self.players.len() < 2 {
+            panic!("Need atleast two players to start!")
+        }
         self.generate_deck();
+        self.discard.push(self.deck.pop().unwrap());
+        self.started = true;
+        let start_card_no = self.get_rule("Initial Cards").unwrap().value;
+        if start_card_no * self.players.len() as i32 > self.deck.len() as i32 {
+            panic!("Did not find enough cards to start playing")
+        }
+        for id in 0..self.players.len() as i32{
+            self.deal(id, start_card_no);
+        }
     }
+
+    pub fn deal(&mut self, player_id: i32, number: i32) {
+        if self.deck.len() < number as usize {
+            if self.discard.len() == 0 {
+                panic!("Not enough cards found to play");
+            }
+            self.generate_deck();
+            self.discard = Vec::from([self.discard[0].clone()]);
+        }
+        if let Some(player) = self.players.get_mut(&player_id) {
+            for _ in 0..number {
+                player.hand.push(self.deck[0].clone());
+                self.deck.remove(0);
+                self.drawn += 1;
+            }
+            player.sort_hand();
+            player.called = false;
+        }
+        else {
+            panic!("Player with id {} not found", player_id)
+        }
+    }
+
     pub fn generate_deck(&mut self) {
         let decks = self.get_rule("decks");
         if let Some(deck_no) = decks {
@@ -84,7 +121,7 @@ impl UnoGame {
     fn shuffle_deck(&mut self) {
         self.deck.shuffle(&mut thread_rng())
     }
-        
+
     pub fn set_rule(&mut self, rule: &str, value: i32) -> String {
         let found_rule = self.get_rule(rule);
         if let Some(rule) = found_rule {
@@ -106,7 +143,7 @@ impl UnoGame {
             format!("Rule {} not found", rule)
         }
     }
-    
+
     pub fn show_rule(&mut self, rule: &str) -> String {
         let found_rule = self.get_rule(rule);
         if let Some(rule) = found_rule {
@@ -128,15 +165,15 @@ impl UnoGame {
     pub fn get_rule(&mut self , get_rule: &str) -> Option<&Rule>{
         self.rules.iter().find(|rule| rule.name.to_lowercase() == get_rule.to_lowercase())
     }
-    
+
     pub fn get_curr_player(&mut self) -> &Player {
         &self.queue[0]
     }
-    
+
     pub fn get_curr_card(&mut self) -> &Card {
         &self.discard.last().unwrap()
     }
-    
+
     fn next(&mut self) -> &Player {
         let player = self.queue[0].clone();
         self.queue.remove(0usize);
@@ -144,7 +181,7 @@ impl UnoGame {
         self.queue.retain(|player| !player.finished);
         &self.queue[0]
     }
-    
+
     pub fn notify_player(&mut self, id: i32, msg: &str) -> String{
         let fplayer = self.players.get_mut(&id);
         if let Some(player) = fplayer {
@@ -155,7 +192,9 @@ impl UnoGame {
             format!("Player {} not found",id)
         }
     }
-    
+
+
+
     fn generate_rules() -> [Rule; 10] {
         [
             Rule{
