@@ -122,6 +122,21 @@ impl UnoGame {
         self.deck.shuffle(&mut thread_rng())
     }
 
+    pub fn remove_player(&mut self, player_id: i32) {
+        let player = self.players.get_mut(&player_id);
+        if let Some(player) = player {
+            self.dropped.push(player.clone());
+            if self.queue[0].id == player_id {
+                self.next();
+            };
+            self.players.retain(|f_player, _| *f_player != player_id);
+            self.queue.retain(|f_player| f_player.id != player_id);
+        }
+        else {
+            panic!("Player with id {} not found",player_id)
+        }
+    }
+    
     pub fn set_rule(&mut self, rule: &str, value: i32) -> String {
         let found_rule = self.get_rule(rule);
         if let Some(rule) = found_rule {
@@ -140,7 +155,7 @@ impl UnoGame {
             return "Rule changed".to_string()
         }
         else {
-            format!("Rule {} not found", rule)
+            panic!("Rule {} not found", rule)
         }
     }
 
@@ -189,7 +204,7 @@ impl UnoGame {
             msg.to_string()
         }
         else {
-            format!("Player {} not found",id)
+            panic!("Player {} not found",id)
         }
     }
 
