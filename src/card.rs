@@ -1,18 +1,20 @@
 use std::cmp::Ordering;
 use std::fmt::Display;
 pub struct Card {
+    pub(crate) num: i32,
     pub(crate) id: String,
-    wild: bool,
+    pub(crate) wild: bool,
     pub(crate) color: String,
 }
 
 impl Card {
-    pub(crate) fn new(id: String, color : &str) -> Self {
+    pub(crate) fn new(id: String, color : &str, num: i32) -> Self {
         let wild: bool = {
             color == "wild" || color == ""
         };
         let colour = String::from(color);
         Self {
+            num,
             id,
             color: colour,
             wild
@@ -97,6 +99,7 @@ impl PartialOrd<Self> for Card {
 impl Clone for Card {
     fn clone(&self) -> Self {
         Card {
+            num: self.num,
             id: self.id.clone(),
             wild: self.wild,
             color: self.color.clone(),

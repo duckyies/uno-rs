@@ -41,22 +41,23 @@ impl Player {
             name: self.username.clone(),
         }
     }
-    fn get_card(&self, mut words: &Vec<String>) -> Option<&Card> {
+    pub fn get_card(&self, mut words: &Vec<&str>) -> Option<i32> {
+        
         let mut color: String = String::new();
         let mut id: String = String::new();
         if words.len() == 1 {
-            let str_color: String = words[0].clone().chars().next().unwrap().to_string();
+            let str_color: String = words[0].chars().next().unwrap().to_string();
             let parsed = self.parse_color(str_color.clone());
             if  parsed == "" {
-                id = words[0].clone();
+                id = words[0].to_string();
             }
             else {
                 color = String::from(parsed);
                 id = str_color;
             };
         } else {
-            color = words[0].clone();
-            id = words[1].clone();
+            color = words[0].parse().unwrap();
+            id = words[1].parse().unwrap();
         };
         if id.is_empty() {
             return None
@@ -89,10 +90,10 @@ impl Player {
         };
         return if ["WILD", "WILD+4"].contains(&&*id.to_uppercase().to_string()) {
             let found_card = self.hand.iter().find(|&card: &&Card| card.id.eq_ignore_ascii_case(id.as_str()));
-            found_card
+            Some(found_card.unwrap().num)
         } else {
             let found_card = self.hand.iter().find(|&card: &&Card| card.id.eq_ignore_ascii_case(id.as_str()) && card.color.eq_ignore_ascii_case(color.as_str()));
-            found_card
+            Some(found_card.unwrap().num)
         }
     }
 

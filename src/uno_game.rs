@@ -20,6 +20,7 @@ pub struct UnoGame {
     started: bool,
     drawn: i32,
     confirm: bool,
+    card_num: i32,
     time_started: i64,
     rules: [Rule; 10],
 }
@@ -35,6 +36,7 @@ impl UnoGame {
             discard: Vec::new(),
             dropped: Vec::new(),
             drawn: 0,
+            card_num: 1,
             started: false,
             confirm: false,
             time_started: 0,
@@ -46,6 +48,9 @@ impl UnoGame {
             panic!("Need atleast two players to start!")
         }
         self.generate_deck();
+        for (_, player) in &self.players {
+            self.queue.push(player.clone())
+        }
         self.time_started = (SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()/60) as i64;
         self.discard.push(self.deck.pop().unwrap());
         self.started = true;
@@ -95,21 +100,28 @@ impl UnoGame {
     fn generate_deck(&mut self) {
         let decks = self.get_rule("decks");
         if let Some(deck_no) = decks {
-            for deck in 0..deck_no.value {
+            for _ in 0..deck_no.value {
                 for color in ["R","G","B","Y"] {
                     for card in 0..10 {
-                        self.deck.push(Card::new(card.to_string(), color));
-                        self.deck.push(Card::new(card.to_string(), color));
+                        self.deck.push(Card::new(card.to_string(), color, self.card_num));
+                        self.card_num+=1;
+                        self.deck.push(Card::new(card.to_string(), color, self.card_num));
+                        self.card_num+=1;
                     }
-                    for card in 0..2 {
-                        self.deck.push(Card::new("+2".to_string(), color));
-                        self.deck.push(Card::new("SKIP".to_string(), color));
-                        self.deck.push(Card::new("REVERSE".to_string(), color));
+                    for _ in 0..2 {
+                        self.deck.push(Card::new("+2".to_string(), color, self.card_num));
+                        self.card_num+=1;
+                        self.deck.push(Card::new("SKIP".to_string(), color, self.card_num));
+                        self.card_num+=1;
+                        self.deck.push(Card::new("REVERSE".to_string(), color, self.card_num));
+                        self.card_num+=1;
                     }
                 }
-                for card in 0..4 {
-                    self.deck.push(Card::new("WILD".to_string(), ""));
-                    self.deck.push(Card::new("WILD+4".to_string(), ""));
+                for _ in 0..4 {
+                    self.deck.push(Card::new("WILD".to_string(), "", self.card_num));
+                    self.card_num+=1;
+                    self.deck.push(Card::new("WILD+4".to_string(), "", self.card_num));
+                    self.card_num+=1;
                 }
             }
 
@@ -206,6 +218,9 @@ impl UnoGame {
     }
 
     fn next(&mut self) -> &Player {
+        if self.queue.is_empty() {
+            panic!("Game has ended!")   
+        }
         let player = self.queue[0].clone();
         self.queue.remove(0usize);
         self.queue.push(player);
@@ -320,5 +335,89 @@ impl UnoGame {
             }
         ]
     }
+}
 
+//Commands
+impl UnoGame {
+    fn play(&mut self, card: String) -> Result<String,String> {
+        if self.queue.is_empty() {
+            Err("Game has ended!".to_string())
+        }
+        else {
+            let rev_skip = self.get_rule("Reverses Skip").unwrap().value;
+            let player = &mut self.queue[0];
+
+            let found_card = player.get_card(&(card.split_whitespace().collect()));
+
+            if let Some(found_card) = found_card {
+
+                let card = player.hand.iter().find(|cards| cards.num == found_card).unwrap().clone();
+                let curr_card = self.discard.last().unwrap();
+
+                if curr_card.wild || curr_card.color.is_empty() || curr_card.id == card.id || curr_card.color == card.color {
+                    self.called_out = false;
+                    self.discard.push(card.clone());
+                    player.hand.retain(|c_num| c_num.num != found_card);
+                    player.sort_hand();
+
+                    let mut prefix = String::new();
+                    let mut extra = String::new();
+
+                    if player.hand.len() == 0 {
+                        player.finished = true;
+                        self.finished.push(player.clone());
+                        prefix.push_str(format!("{} has no more cards. They finished in rank *{}*!\n\n", player.username, self.finished.len()).as_str());
+                        
+                        if self.queue.len() == 2 {
+                            prefix.push_str(self.scoreboard().as_str());
+                            self.finished.push(self.queue[1].clone());
+                            self.queue = Vec::new();
+                            return Ok(prefix)
+                        }
+                    }
+                    
+                    match card.id.as_str() {
+                        "REVERSE" => {
+                            if self.queue.len() > 2 {
+                                self.queue.reverse();
+                                let ins = self.queue.pop().unwrap();
+                                self.queue.insert(0, ins);
+                                extra.push_str("Turns are now in reverse order!");
+                            }
+                            else if rev_skip == 1 {
+                                self.queue.reverse();
+                                extra.push_str(format!("{}, skip a turn!", self.queue[0].username.clone()).as_str());
+                            };
+                        }
+                        "SKIP" => {
+                            let ins = self.queue.pop().unwrap();
+                            self.queue.insert(0, ins);
+                            extra.push_str(format!("{}, skip a turn!", self.queue[0].username.clone()).as_str());
+                        }
+                        "+2" => {
+                            let amound = 0;
+                            for i in (self.discard.len() - 1) ..=0 {
+                                if self.discard[i].id == "+2" {
+                                    
+                                }
+                            }
+                        }
+                        _ => { 
+                            
+                        }
+                    };
+                    
+                    Ok(prefix)
+                }
+                else {
+                    Err(format!("You cannot play this card here. Last played card was {} {}",curr_card.id, curr_card.color))
+                }
+
+            }
+            else {
+                Err(format!("Card {} not found in hand, its currently {}'s turn", card, player.username))
+            }
+        }
+        
+    }
 }
