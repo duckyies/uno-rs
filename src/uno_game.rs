@@ -1,10 +1,13 @@
+use std::cmp::min;
 use std::collections::HashMap;
+use std::fmt::format;
 use std::time::SystemTime;
 use crate::card::Card;
 use crate::player::Player;
 use crate::rules::Rule;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
+use std::time::{UNIX_EPOCH};
 
 pub struct UnoGame {
     players : HashMap<i32,Player>,
@@ -43,6 +46,7 @@ impl UnoGame {
             panic!("Need atleast two players to start!")
         }
         self.generate_deck();
+        self.time_started = (SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()/60) as i64;
         self.discard.push(self.deck.pop().unwrap());
         self.started = true;
         let start_card_no = self.get_rule("Initial Cards").unwrap().value;
@@ -54,7 +58,7 @@ impl UnoGame {
         }
     }
 
-    pub fn deal(&mut self, player_id: i32, number: i32) {
+    fn deal(&mut self, player_id: i32, number: i32) {
         if self.deck.len() < number as usize {
             if self.discard.len() == 0 {
                 panic!("Not enough cards found to play");
@@ -76,7 +80,19 @@ impl UnoGame {
         }
     }
 
-    pub fn generate_deck(&mut self) {
+    pub fn scoreboard(&self) -> String {
+        let mut out = String::new();
+        let mut rank = 1;
+        for person in &self.finished {
+            out.push_str(format!("{}. *{}*", rank, person.username).as_str());
+            rank+=1;
+        }
+        let mins = (SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()/60) as i64 - self.time_started;
+        out.push_str(format!("\nThis game lasted {} minutes and {} cards were drawn",mins,self.drawn).as_str());
+        out
+    }
+
+    fn generate_deck(&mut self) {
         let decks = self.get_rule("decks");
         if let Some(deck_no) = decks {
             for deck in 0..deck_no.value {
