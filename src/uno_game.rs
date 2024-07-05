@@ -345,6 +345,7 @@ impl UnoGame {
         }
         else {
             let rev_skip = self.get_rule("Reverses Skip").unwrap().value;
+            let draw_skip = self.get_rule("Draws Skip").unwrap().value;
             let player = &mut self.queue[0];
 
             let found_card = player.get_card(&(card.split_whitespace().collect()));
@@ -390,29 +391,50 @@ impl UnoGame {
                             };
                         }
                         "SKIP" => {
-                            let ins = self.queue.pop().unwrap();
-                            self.queue.insert(0, ins);
+                            let ins = self.queue.remove(0);
+                            self.queue.push(ins);
                             extra.push_str(format!("{}, skip a turn!", self.queue[0].username.clone()).as_str());
                         }
                         "+2" => {
-                            let amound = 0;
+                            let mut amount = 0;
                             for i in (self.discard.len() - 1) ..=0 {
                                 if self.discard[i].id == "+2" {
-                                    
+                                    amount += 2;
                                 }
+                                else {
+                                    break;
+                                }
+                            }
+                            self.deal(self.queue[1].id, amount);
+                            extra.push_str(format!("{} picks up {}!",self.queue[1].username.clone(), amount ).as_str());
+                            if draw_skip == 1 {
+                                extra.push_str("Also, skip a turn!");
+                                let ins = self.queue.remove(0);
+                                self.queue.push(ins);
+                            }
+                        }
+                        "WILD" => {
+                            extra.push_str(format!("The color is now {}", card.color).as_str());
+                        }
+                        "WILD+4" => {
+                            self.deal(self.queue[1].id, 4);
+                            extra.push_str(format!("{} picks up! The current color is now {}", self.queue[1].username.clone(), card.color).as_str());
+                            if draw_skip == 1 {
+                                extra.push_str("Also, skip a turn!");
+                                let ins = self.queue.remove(0);
+                                self.queue.push(ins);
                             }
                         }
                         _ => { 
                             
                         }
                     };
-                    
+                    self.next();
                     Ok(prefix)
                 }
                 else {
                     Err(format!("You cannot play this card here. Last played card was {} {}",curr_card.id, curr_card.color))
                 }
-
             }
             else {
                 Err(format!("Card {} not found in hand, its currently {}'s turn", card, player.username))
