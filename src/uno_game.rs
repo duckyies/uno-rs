@@ -63,7 +63,7 @@ impl UnoGame {
         }
     }
 
-    fn deal(&mut self, player_id: i32, number: i32) {
+    fn deal(&mut self, player_id: i32, number: i32) -> i32 {
         if self.deck.len() < number as usize {
             if self.discard.len() == 0 {
                 panic!("Not enough cards found to play");
@@ -72,6 +72,7 @@ impl UnoGame {
             self.discard = Vec::from([self.discard[0].clone()]);
         }
         if let Some(player) = self.players.get_mut(&player_id) {
+            let card = self.deck[0].num;
             for _ in 0..number {
                 player.hand.push(self.deck[0].clone());
                 self.deck.remove(0);
@@ -79,6 +80,7 @@ impl UnoGame {
             }
             player.sort_hand();
             player.called = false;
+            return card
         }
         else {
             panic!("Player with id {} not found", player_id)
@@ -339,7 +341,7 @@ impl UnoGame {
 
 //Commands
 impl UnoGame {
-    fn play(&mut self, card: String) -> Result<String,String> {
+    pub fn play(&mut self, card: String) -> Result<String,String> {
         if self.queue.is_empty() {
             Err("Game has ended!".to_string())
         }
@@ -440,6 +442,41 @@ impl UnoGame {
                 Err(format!("Card {} not found in hand, its currently {}'s turn", card, player.username))
             }
         }
+    }
+    
+    pub fn draw(&mut self) -> Result<String,String> {
+        let must_play = self.get_rule("Must Play").unwrap().value;
+        let draw_autoplay = self.get_rule("Automatically Play After Draw").unwrap().value;
+
+        let player = &mut self.queue[0];
+        if must_play == 1 {
+            for card in &player.hand {
+                let curr_card = self.discard.last().unwrap();
+                if curr_card.wild || curr_card.color.is_empty() || curr_card.id == card.id || curr_card.color == card.color {
+                    return Err("You must play a card if able.".to_string())
+                }
+            }
+        }
+        let card_num = self.deal(self.queue[0].id, 1);
+        if draw_autoplay == 1 {
+            let card = self.queue[0].hand.iter().find(|cards| cards.num == card_num).unwrap().clone();
+            let curr_card = self.discard.last().unwrap();
+            if curr_card.wild || curr_card.color.is_empty() || curr_card.id == card.id || curr_card.color == card.color {
+                self.play(format!("{} {}", card.color, card.id)).expect("");
+            }
+        }
+        self.next();
+        Ok(format!("{}", card_num))
+    }
+
+    pub fn callout(&mut self, call_player_id: i32) -> Result<String,String>{
+        let callouts = self.get_rule("Callouts").unwrap().value;
+        if callouts == 0 {
+           return Err("Callouts are not permitted in this game".to_string())
+        }
+        let callout_penalty = self.get_rule("Callout Penalty").unwrap().value;
+        let false_callout = self.get_rule("False Callout Penalty").unwrap().value;
         
     }
+
 }
