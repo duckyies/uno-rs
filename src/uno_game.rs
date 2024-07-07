@@ -507,5 +507,18 @@ impl UnoGame {
         }
         
     }
+    
+    pub fn uno(&mut self, call_player_id: i32) -> Result<String,String> {
+        let player: &mut Player = self.queue.iter_mut().find(|ply| ply.id == call_player_id).unwrap();
+        if player.hand.len() == 1 {
+            return if player.called {
+                Ok("You already said UNO!".to_string())
+            } else {
+                player.called = true;
+                Ok("UNO!".to_string())
+            }
+        };
+        Err("You have more than 1 card!".to_string())
+    }
 
 }
