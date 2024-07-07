@@ -469,13 +469,42 @@ impl UnoGame {
         Ok(format!("{}", card_num))
     }
 
-    pub fn callout(&mut self, call_player_id: i32) -> Result<String,String>{
+    pub fn callout(&mut self, call_player_id: i32) -> Result<String,String> {
         let callouts = self.get_rule("Callouts").unwrap().value;
         if callouts == 0 {
            return Err("Callouts are not permitted in this game".to_string())
         }
+        
+        if self.called_out {
+            return Err("A callout was already performed in this turn!".to_string());
+        }
+        
         let callout_penalty = self.get_rule("Callout Penalty").unwrap().value;
         let false_callout = self.get_rule("False Callout Penalty").unwrap().value;
+        
+        let mut called_out = false;
+        let mut res = String::new();
+        let mut calls: Vec<i32> = Vec::new();
+        
+        for player in &self.queue {
+            if player.hand.len() == 1 && !player.called {
+                calls.push(player.id);
+                called_out = true;
+                res.push_str(format!("{} you did not say UNO! Pick up {}",player.username.clone(),callout_penalty).as_str());
+            }
+        };
+        
+        for i in calls {
+            self.deal(i,callout_penalty);
+        }
+        return if !called_out {
+            self.deal(call_player_id, false_callout);
+            self.called_out = true;
+            Ok(format!("There was no one to call out! Pick up {}", callout_penalty))
+        } else {
+            self.called_out = true;
+            Ok(res)
+        }
         
     }
 
