@@ -520,5 +520,18 @@ impl UnoGame {
         };
         Err("You have more than 1 card!".to_string())
     }
+    
+    pub fn table(&mut self) -> String {
+        let last_card = self.discard.last().unwrap();
+        let mut ext = format!("A {} {} has been played!\nIt is currently {}'s turn!\n\n", last_card.id.clone(), last_card.color.clone(), self.queue[0].username); 
+        let mut idx = 1;
+        for player in &self.queue {
+            ext.push_str(format!("{}. {} - {} cards\n",idx,player.username, player.hand.len()).as_str());
+            idx+=1
+        }
+        let mins = (SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()/60) as i64 - self.time_started;
+        ext.push_str(format!("This game has lasted {} minutes and {} cards have been drawn", mins, self.drawn).as_str());
+        ext
+    }
 
 }
